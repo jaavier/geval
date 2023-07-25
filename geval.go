@@ -1,28 +1,30 @@
 package geval
 
 import (
+	"context"
 	"log"
 )
 
 type Params struct {
-	Err            error
-	Success        func()
-	Handler        func() error
-	Failed         func()
-	Panic          func(v any) error
-	Verbose        int
-	SuccessMessage string
-	FailedMessage  string
+	Err     error
+	Success func(ctx context.Context)
+	Failed  func(ctx context.Context)
+	Handler func() (context.Context, error)
+	Panic   func(v any) error
+	Verbose int
+	Context context.Context
 }
 
 func Run(params *Params) {
 	var err error
+	var ctx = context.TODO()
 
-	if params.Handler == nil {
+	if params.Handler == nil && params.Err == nil {
 		return
 	}
+
 	if params.Err == nil {
-		err = params.Handler()
+		ctx, err = params.Handler()
 	}
 
 	if err != nil {
@@ -33,11 +35,11 @@ func Run(params *Params) {
 			panic(params.Panic(err))
 		}
 		if params.Failed != nil {
-			params.Failed()
+			params.Failed(ctx)
 		}
 	} else {
 		if params.Success != nil {
-			params.Success()
+			params.Success(ctx)
 		}
 	}
 }
