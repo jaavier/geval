@@ -7,6 +7,7 @@ import (
 type Params struct {
 	Err            error
 	Success        func()
+	Handler        func() error
 	Failed         func()
 	Panic          func(v any) error
 	Verbose        int
@@ -15,12 +16,21 @@ type Params struct {
 }
 
 func Run(params *Params) {
-	if params.Err != nil {
+	var err error
+
+	if params.Handler == nil {
+		return
+	}
+	if params.Err == nil {
+		err = params.Handler()
+	}
+
+	if err != nil {
 		if params.Verbose > 0 {
-			log.Println(params.Err.Error())
+			log.Println(err.Error())
 		}
 		if params.Panic != nil {
-			panic(params.Panic(params.Err))
+			panic(params.Panic(err))
 		}
 		if params.Failed != nil {
 			params.Failed()
