@@ -19,11 +19,7 @@ func Run(params *Params) {
 	var err error
 	var ctx = context.TODO()
 
-	if params.Handler == nil && params.Err == nil {
-		return
-	}
-
-	if params.Err == nil {
+	if params.Err == nil && params.Handler != nil {
 		ctx, err = params.Handler()
 	}
 
